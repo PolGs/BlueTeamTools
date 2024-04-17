@@ -1,0 +1,181 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blue Team Tools - Website/URL Analyzer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f5f9; /* light blue background */
+            color: #333; /* dark text color */
+        }
+
+        .top-menu {
+            background-color: #007bff; /* blue top menu background */
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        .top-menu ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .top-menu ul li {
+            display: inline;
+            margin-right: 20px;
+        }
+
+        .top-menu ul li a {
+            color: #fff; /* white link color */
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff; /* white container background */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* subtle shadow */
+            border-radius: 8px;
+        }
+
+        h1 {
+            color: #007bff; /* blue header color */
+            text-align: center;
+        }
+
+        form {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        input[type="text"] {
+            width: 60%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff; /* blue button color */
+            color: #fff; /* white text color */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3; /* darker blue on hover */
+        }
+
+        .panel {
+            padding: 20px;
+            background-color: #f8f9fa; /* light gray panel background */
+            border-radius: 5px;
+        }
+
+        .result-container {
+            margin-top: 20px;
+        }
+
+        #screenshotImage {
+            max-width: 100%;
+            display: none; /* Hide by default */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-menu">
+        <ul>
+            <li><a href="#">Start</a></li>
+            <li><a href="#">Website Analyzer</a></li>
+            <li><a href="#">File Analyzer</a></li>
+            <li><a href="#">Leak Search</a></li>
+        </ul>
+    </div>
+    <div class="container">
+        <h1>Website Analyzer</h1>
+        <form id="urlForm">
+            <input type="text" id="urlInput" placeholder="Enter URL to analyze">
+            <button type="submit">Analyze</button>
+        </form>
+        <div class="panel" id="resultsPanel" style="display: none;">
+            <h2>Analysis Results</h2>
+            <p id="resultMessage"></p>
+            <div class="result-container">
+                <h3>HTML Content:</h3>
+                <pre id="htmlContent"></pre>
+            </div>
+            <div class="result-container">
+                <h3>Screenshot:</h3>
+                <img id="screenshotImage" alt="Website Screenshot">
+                <p id="screenshotError"></p>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    document.getElementById('urlForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var url = document.getElementById('urlInput').value;
+
+        // Fetch and display HTML content
+        fetch(`http://127.0.0.1:5000/extract-html?url=${encodeURIComponent(url)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch HTML content');
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('htmlContent').textContent = data.html_content || 'No HTML content available.';
+                document.getElementById('htmlError').textContent = '';  // Clear previous errors
+            })
+            .catch(error => {
+                document.getElementById('htmlContent').textContent = '';
+                document.getElementById('htmlError').textContent = error.message;
+            });
+
+        // Fetch and display the screenshot
+        fetch(`http://127.0.0.1:5000/screenshot?url=${encodeURIComponent(url)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch screenshot');
+                }
+                return response.blob();
+            })
+            .then(imageBlob => {
+                const imageUrl = URL.createObjectURL(imageBlob);
+                document.getElementById('screenshotImage').src = imageUrl;
+                document.getElementById('screenshotImage').style.display = 'block';
+                document.getElementById('screenshotError').textContent = '';  // Clear previous errors
+            })
+            .catch(error => {
+                document.getElementById('screenshotImage').style.display = 'none';
+                document.getElementById('screenshotError').textContent = error.message;
+            });
+
+        // Display results panel
+        document.getElementById('resultMessage').textContent = "Analysis for URL: " + url;
+        document.getElementById('resultsPanel').style.display = 'block';
+    });
+</script>
+
+
+
+</html>
+
+
+
+
+
