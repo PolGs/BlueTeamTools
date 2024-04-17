@@ -86,15 +86,42 @@
             margin-top: 20px;
         }
 
-        #screenshotImage {
-            max-width: 100%;
-            display: none; /* Hide by default */
+       
+              
+        /* Add a flexbox container for results */
+        .result-display {
+            display: flex; /* Enable flexbox */
+            justify-content: space-around; /* Space between the children */
+            align-items: flex-start; /* Align items at the start of the flex container */
+            margin-top: 20px;
+        }
+
+        /* Style for the HTML content container */
+        .html-content {
+            flex: 1; /* Take up 1 portion of the space */
+            overflow: auto; /* Enable scrolling if content overflows */
+            white-space: pre-wrap; /* Preserve whitespaces and line breaks */
+            max-height: 400px; /* Set a maximum height with scroll */
+            margin-right: 10px; /* Add some space between the content and image */
+        }
+
+        /* Style for the image container */
+        .image-container {
+            flex: 1; /* Take up 1 portion of the space */
+        }
+
+        /* Ensure the image does not overflow its container */
+        .screenshotImage {
+            max-width: 100%; /* Image takes a maximum of 100% of its container's width */
+            height: auto; /* Scale the height automatically to maintain aspect ratio */
+            display: block; /* Display the image */
         }
     </style>
 </head>
 
 <body>
     <div class="top-menu">
+    	<h2>Blue Team Tools</h1>
         <ul>
             <li><a href="#">Start</a></li>
             <li><a href="#">Website Analyzer</a></li>
@@ -104,22 +131,33 @@
     </div>
     <div class="container">
         <h1>Website Analyzer</h1>
+        
         <form id="urlForm">
-            <input type="text" id="urlInput" placeholder="Enter URL to analyze">
+            <input type="text" id="urlInput" placeholder="Enter URL to analyze  i. e. http://example.com">
             <button type="submit">Analyze</button>
         </form>
         <div class="panel" id="resultsPanel" style="display: none;">
             <h2>Analysis Results</h2>
             <p id="resultMessage"></p>
-            <div class="result-container">
+
+            <div class="result-display">
+                <!-- Container for the HTML content -->
+                <div class="html-content">
                 <h3>HTML Content:</h3>
-                <pre id="htmlContent"></pre>
+                <p id="htmlContent">a</p>
+                </div>
+                <!-- Container for the image -->
+                <div class="image-container">
+                    <h3>Screenshot:</h3>
+                    <img id="screenshotImage" alt="Website Screenshot" src="http://127.0.0.1:5000/static/screen.png" class="screenshotImage" />
+                    <p id="screenshotError"></p>
+                </div>
             </div>
-            <div class="result-container">
-                <h3>Screenshot:</h3>
-                <img id="screenshotImage" alt="Website Screenshot">
-                <p id="screenshotError"></p>
-            </div>
+      
+            
+            
+            
+            
         </div>
     </div>
 </body>
@@ -133,17 +171,17 @@
         fetch(`http://127.0.0.1:5000/extract-html?url=${encodeURIComponent(url)}`)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Failed to fetch HTML content');
+                    document.getElementById('htmlContent').innerHTML = "Failed to fetch HTML content";
                 }
                 return response.json();
             })
             .then(data => {
-                document.getElementById('htmlContent').textContent = data.html_content || 'No HTML content available.';
-                document.getElementById('htmlError').textContent = '';  // Clear previous errors
+//			document.getElementById('htmlContent').innerHTML = "b";
+			const htmlContent =data.html_content;
+	                document.getElementById('htmlContent').innerHTML = escapeHTML(htmlContent);
             })
             .catch(error => {
-                document.getElementById('htmlContent').textContent = '';
-                document.getElementById('htmlError').textContent = error.message;
+                document.getElementById('htmlContent').innerHTML = error;
             });
 
         // Fetch and display the screenshot
@@ -152,13 +190,10 @@
                 if (!response.ok) {
                     throw new Error('Failed to fetch screenshot');
                 }
-                return response.blob();
+                return response.json();
             })
-            .then(imageBlob => {
-                const imageUrl = URL.createObjectURL(imageBlob);
-                document.getElementById('screenshotImage').src = imageUrl;
-                document.getElementById('screenshotImage').style.display = 'block';
-                document.getElementById('screenshotError').textContent = '';  // Clear previous errors
+            .then(imageUrl => {
+                document.getElementById('screenshotImage').src = imageUrl.image_url;
             })
             .catch(error => {
                 document.getElementById('screenshotImage').style.display = 'none';
@@ -169,6 +204,23 @@
         document.getElementById('resultMessage').textContent = "Analysis for URL: " + url;
         document.getElementById('resultsPanel').style.display = 'block';
     });
+    
+    
+    
+    
+    
+function escapeHTML(html) {
+    return html
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+    
+    
+    
 </script>
 
 
